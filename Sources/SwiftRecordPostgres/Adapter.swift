@@ -13,7 +13,7 @@ extension PG.Client.Config {
 				host: config.host,
 				user: config.user ?? "postgres",
 				password: config.password,
-				database: config.database.map({ PGAdapter.sanitizeIdentifier($0) }),
+				database: config.database.map({ Client.sanitizeIdentifier($0) }),
 				port: config.port ?? PG.Client.Config.defaultPort
 			)
 		}
@@ -54,8 +54,8 @@ public struct PGAdapter: Adapter {
 
 
 extension PG.Client: SwiftRecord.Connection {
-    public func createMigrationsTable(completion: @escaping (Swift.Error?) -> Void) {
-        self.exec("CREATE TABLE IF NOT EXISTS migrations (name TEXT PRIMARY KEY);") { (result) in
+	public func createMigrationsTable(completion: @escaping (Swift.Error?) -> Void) {
+		self.exec("CREATE TABLE IF NOT EXISTS migrations (name TEXT PRIMARY KEY);") { (result) in
             completion(result.error)
         }
     }
@@ -82,39 +82,17 @@ extension PG.Client: SwiftRecord.Connection {
         }
     }
 	
-	public func createTable(_ name: String, primaryKey: Column?, _ columns: [Column], completion: @escaping (Swift.Error?) -> Void) {
-		let columnDefinitions: String
-		if let primaryKey = primaryKey {
-			var allColumns = columns
-			allColumns.insert(primaryKey, at: 0)
-			
-			columnDefinitions = """
-			\(PGAdapter.definition(for: allColumns)),
-			\tPRIMARY KEY(\(primaryKey.name))
-			"""
-		} else {
-			columnDefinitions = PGAdapter.definition(for: columns)
-		}
+	public func performQuerey(_ query: String, bindings: [Any?] = [], completion: @escaping (Result<SwiftRecord.QueryResult>) -> Void) {
+		let pgBindings = bindings.map({ $0 as? PostgresCodable })
 		
-		
-		let query = Query("""
-			CREATE TABLE "\(PGAdapter.sanitizeIdentifier(name))" (
-			\(columnDefinitions)
-			);
-			""")
-		print("create table using: \(query)")
-		
-		self.exec(query) { (result) in
-			completion(result.error)
-		}
-	}
-	
-	public func dropTable(_ name: String, completion: @escaping (Swift.Error?) -> Void) {
-		let query = Query("""
-			DROP TABLE "\(PGAdapter.sanitizeIdentifier(name))"
-			""")
+		let query = Query(query, bindings: pgBindings)
 		self.exec(query) { result in
-			completion(result.error)
+			switch result {
+			case .success(let value):
+				completion(.success(value))
+			case .failure(let error):
+				completion(.failure(error))
+			}
 		}
 	}
 }
