@@ -27,9 +27,13 @@ extension Adapter {
 	
 	
 	public static func definition(for column: Column) -> String {
-		return """
-			"\(column.name)" \(column.type.rawValue)
-		"""
+		var parts: [String] = []
+		parts.append("\"\(column.name)\"")
+		parts.append(column.type.rawValue)
+		if !column.isNullable {
+			parts.append("NOT NULL")
+		}
+		return "\t" + parts.joined(separator: " ")
 	}
 	
 	public static func definition(for columns: [Column]) -> String {
@@ -46,6 +50,13 @@ public protocol Connection: class {
 	func finalizeMigration(_ migration: Migration, completion: @escaping (Swift.Error?) -> Void)
 	
 	func createTable(_ name: String, _ columns: [Column], completion: @escaping (Swift.Error?) -> Void)
+	func createTable(_ name: String, primaryKey: Column?, _ columns: [Column], completion: @escaping (Swift.Error?) -> Void)
 	
 	func disconnect()
+}
+
+extension Connection {
+	public func createTable(_ name: String, _ columns: [Column], completion: @escaping (Swift.Error?) -> Void) {
+		self.createTable(name, primaryKey: .defaultPrimaryKey, columns, completion: completion)
+	}
 }

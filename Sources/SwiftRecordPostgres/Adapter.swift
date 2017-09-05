@@ -82,12 +82,27 @@ extension PG.Client: SwiftRecord.Connection {
         }
     }
 	
-	public func createTable(_ name: String, _ columns: [Column], completion: @escaping (Swift.Error?) -> Void) {
+	public func createTable(_ name: String, primaryKey: Column?, _ columns: [Column], completion: @escaping (Swift.Error?) -> Void) {
+		let columnDefinitions: String
+		if let primaryKey = primaryKey {
+			var allColumns = columns
+			allColumns.insert(primaryKey, at: 0)
+			
+			columnDefinitions = """
+			\(PGAdapter.definition(for: allColumns)),
+			\tPRIMARY KEY(\(primaryKey.name))
+			"""
+		} else {
+			columnDefinitions = PGAdapter.definition(for: columns)
+		}
+		
+		
 		let query = Query("""
 		CREATE TABLE "\(PGAdapter.sanitizeIdentifier(name))" (
-		\(PGAdapter.definition(for: columns))
+		\(columnDefinitions)
 		);
 		""")
+		print("create table using: \(query)")
 		
 		self.exec(query) { (result) in
 			completion(result.error)
