@@ -13,7 +13,7 @@ extension PG.Client.Config {
 				host: config.host,
 				user: config.user ?? "postgres",
 				password: config.password,
-				database: config.database,
+				database: config.database.map({ PGAdapter.sanitizeIdentifier($0) }),
 				port: config.port ?? PG.Client.Config.defaultPort
 			)
 		}
@@ -55,13 +55,13 @@ public struct PGAdapter: Adapter {
 
 extension PG.Client: SwiftRecord.Connection {
     public func createMigrationsTable(completion: @escaping (Swift.Error?) -> Void) {
-        self.exec("CREATE TABLE IF NOT EXISTS migrations name TEXT PRIMARY KEY;") { (result) in
+        self.exec("CREATE TABLE IF NOT EXISTS migrations (name TEXT PRIMARY KEY);") { (result) in
             completion(result.error)
         }
     }
     
     public func beginMigration(_ migration: Migration, completion: @escaping (Result<Bool>) -> Void) {
-        self.exec(Query("SELECT name FROM migrations WHERE name = ?;", migration.name)) { (result) in
+        self.exec(Query("SELECT name FROM migrations WHERE name = $1;", migration.name)) { (result) in
             switch result {
             case .success(let value):
                 completion(.success(value.rowCount > 0))
@@ -72,7 +72,7 @@ extension PG.Client: SwiftRecord.Connection {
     }
     
     public func finalizeMigration(_ migration: Migration, completion: @escaping (Swift.Error?) -> Void) {
-        self.exec(Query("INSERT INTO migrations (name) VALUES (?);", migration.name)) { (result) in
+        self.exec(Query("INSERT INTO migrations (name) VALUES ($1);", migration.name)) { (result) in
             switch result {
             case .success(_):
                 completion(nil)
@@ -81,4 +81,16 @@ extension PG.Client: SwiftRecord.Connection {
             }
         }
     }
+	
+	public func createTable(_ name: String, _ columns: [Column], completion: @escaping (Swift.Error?) -> Void) {
+		let query = Query("""
+		CREATE TABLE "\(PGAdapter.sanitizeIdentifier(name))" (
+		\(PGAdapter.definition(for: columns))
+		);
+		""")
+		
+		self.exec(query) { (result) in
+			completion(result.error)
+		}
+	}
 }

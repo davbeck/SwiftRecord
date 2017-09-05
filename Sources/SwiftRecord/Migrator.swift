@@ -44,6 +44,7 @@ public class Migrator {
 				guard error == nil else { return completion(error) }
 				
 				self.run(self.migrations, on: connection, completion: { (error) in
+					connection.disconnect()
 					completion(error)
 				})
 			}

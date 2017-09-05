@@ -7,11 +7,13 @@ import PG
 class SwiftRecordTests: XCTestCase {
     func testExample() {
 		var config = Config.shared
-		config.database = "SwiftRecordTests"
+		config.database = "SwiftRecordTests_\(UUID().uuidString.prefix(5))"
         sharedAdapter = PGAdapter(config)
         let migrator = Migrator([
 			Migration(name: "create_example", up: { connection, completion in
-				completion(nil)
+				connection.createTable("example", [
+					Column("title", .text)
+				], completion: completion)
 			})
         ])
         
@@ -23,6 +25,17 @@ class SwiftRecordTests: XCTestCase {
 			createExpectation.fulfill()
 		}
 		self.wait(for: [createExpectation], timeout: 5)
+		
+		
+		for i in 0..<2 {
+			// duplicate migrations should succeed without change
+			let migrateExpectation = expectation(description: "migrate \(i)")
+			migrator.migrate { (error) in
+				XCTAssertNil(error)
+				migrateExpectation.fulfill()
+			}
+			self.wait(for: [migrateExpectation], timeout: 5)
+		}
 		
 		
 		let dropExpectation = expectation(description: "drop")

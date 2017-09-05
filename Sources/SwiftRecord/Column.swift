@@ -12,4 +12,10 @@ public struct Column {
         }
     }
     public let type: DataType
+	
+	
+	public init(_ name: String, _ type: DataType) {
+		self.name = name
+		self.type = type
+	}
 }
