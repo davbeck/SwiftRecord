@@ -1,0 +1,52 @@
+{
+  "object": {
+    "pins": [
+      {
+        "package": "AsyncKit",
+        "repositoryURL": "https://github.com/davbeck/AsyncKit.git",
+        "state": {
+          "branch": null,
+          "revision": "1274a791e3168d58c3810fc0f12f183c3b81b417",
+          "version": "0.0.1"
+        }
+      },
+      {
+        "package": "CommonCrypto",
+        "repositoryURL": "https://github.com/IBM-Swift/CommonCrypto.git",
+        "state": {
+          "branch": null,
+          "revision": "02a5c0520b1a0a7a6c606f0273fcd161973722fa",
+          "version": "0.1.4"
+        }
+      },
+      {
+        "package": "Cryptor",
+        "repositoryURL": "https://github.com/IBM-Swift/BlueCryptor.git",
+        "state": {
+          "branch": null,
+          "revision": "40c20108e45bd17f4856b0fa73699e56d1c5f1e6",
+          "version": "0.8.16"
+        }
+      },
+      {
+        "package": "PG",
+        "repositoryURL": "https://github.com/davbeck/PG.swift.git",
+        "state": {
+          "branch": null,
+          "revision": "8637a3298b486eae945a45bedd504f451d4f5341",
+          "version": "0.1.5"
+        }
+      },
+      {
+        "package": "Socket",
+        "repositoryURL": "https://github.com/IBM-Swift/BlueSocket",
+        "state": {
+          "branch": null,
+          "revision": "c53f2459eeb60f7250f2dbc40e01685bae9f1526",
+          "version": "0.12.61"
+        }
+      }
+    ]
+  },
+  "version": 1
+}
