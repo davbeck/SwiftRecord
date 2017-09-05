@@ -52,6 +52,8 @@ public protocol Connection: class {
 	func createTable(_ name: String, _ columns: [Column], completion: @escaping (Swift.Error?) -> Void)
 	func createTable(_ name: String, primaryKey: Column?, _ columns: [Column], completion: @escaping (Swift.Error?) -> Void)
 	
+	func dropTable(_ name: String, completion: @escaping (Swift.Error?) -> Void)
+	
 	func disconnect()
 }
 

@@ -98,13 +98,22 @@ extension PG.Client: SwiftRecord.Connection {
 		
 		
 		let query = Query("""
-		CREATE TABLE "\(PGAdapter.sanitizeIdentifier(name))" (
-		\(columnDefinitions)
-		);
-		""")
+			CREATE TABLE "\(PGAdapter.sanitizeIdentifier(name))" (
+			\(columnDefinitions)
+			);
+			""")
 		print("create table using: \(query)")
 		
 		self.exec(query) { (result) in
+			completion(result.error)
+		}
+	}
+	
+	public func dropTable(_ name: String, completion: @escaping (Swift.Error?) -> Void) {
+		let query = Query("""
+			DROP TABLE "\(PGAdapter.sanitizeIdentifier(name))"
+			""")
+		self.exec(query) { result in
 			completion(result.error)
 		}
 	}

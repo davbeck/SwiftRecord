@@ -32,10 +32,8 @@ class SwiftRecordTests: XCTestCase {
 		
 		
 		let migrator2 = Migrator(migrator.migrations + [
-			Migration(name: "create_example2", up: { connection, completion in
-				connection.createTable("example2", [
-					Column("title", .text)
-				], completion: completion)
+			Migration(name: "drop_example", up: { connection, completion in
+				connection.dropTable("example", completion: completion)
 			})
 		])
 		migrator2.migrate()
