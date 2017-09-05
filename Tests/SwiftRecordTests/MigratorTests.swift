@@ -5,9 +5,13 @@ import PG
 
 
 class SwiftRecordTests: XCTestCase {
-    func testExample() {
+	let config: Config = {
 		var config = Config.shared
 		config.database = "SwiftRecordTests_\(UUID().uuidString.prefix(5))"
+		return config
+	}()
+	
+    func testExample() {
         sharedAdapter = PGAdapter(config)
         let migrator = Migrator([
 			Migration(name: "create_example", up: { connection, completion in
@@ -16,34 +20,28 @@ class SwiftRecordTests: XCTestCase {
 				], completion: completion)
 			})
         ])
-        
         XCTAssertEqual(migrator.migrations.count, 1)
 		
-		let createExpectation = expectation(description: "create")
-		migrator.create { (error) in
-			XCTAssertNil(error)
-			createExpectation.fulfill()
-		}
-		self.wait(for: [createExpectation], timeout: 5)
 		
+		migrator.create()
 		
-		for i in 0..<2 {
+		for _ in 0..<2 {
 			// duplicate migrations should succeed without change
-			let migrateExpectation = expectation(description: "migrate \(i)")
-			migrator.migrate { (error) in
-				XCTAssertNil(error)
-				migrateExpectation.fulfill()
-			}
-			self.wait(for: [migrateExpectation], timeout: 5)
+			migrator.migrate()
 		}
 		
 		
-		let dropExpectation = expectation(description: "drop")
-		migrator.drop { (error) in
-			XCTAssertNil(error)
-			dropExpectation.fulfill()
-		}
-		self.wait(for: [dropExpectation], timeout: 5)
+		let migrator2 = Migrator(migrator.migrations + [
+			Migration(name: "create_example2", up: { connection, completion in
+				connection.createTable("example2", [
+					Column("title", .text)
+				], completion: completion)
+			})
+		])
+		migrator2.migrate()
+		
+		
+		migrator.drop()
     }
 
 
